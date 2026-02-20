@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTC-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Anotador profesional para Conga - Lleva el puntaje de tus partidas">
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="color-scheme" content="light dark">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Conga Pro · Anotador</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        
+        * { font-family: 'Inter', sans-serif; }
+        
+        .fade-slide {
+            transition: all 0.2s ease-out;
+        }
+        
+        .eliminated-card {
+            background: linear-gradient(145deg, #fef2f2 0%, #fee2e2 100%);
+            border-left: 4px solid #ef4444;
+            opacity: 0.9;
+        }
+        
+        .leader-card {
+            background: linear-gradient(145deg, #f0fdf4 0%, #dcfce7 100%);
+            border-left: 4px solid #22c55e;
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.15);
+        }
+
+        .dark .eliminated-card {
+            background: linear-gradient(145deg, #2d1a1a 0%, #3b1e1e 100%);
+            border-left-color: #b91c1c;
+        }
+        
+        .dark .leader-card {
+            background: linear-gradient(145deg, #0a2e1a 0%, #0d3b20 100%);
+            border-left-color: #16a34a;
+        }
+
+        .auto-save-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 18px;
+            border-radius: 40px;
+            font-size: 13px;
+            font-weight: 500;
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            transition: opacity 0.3s, transform 0.3s;
+            opacity: 0;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateY(10px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .auto-save-indicator.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { 
+            opacity: 0.5;
+        }
+
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 20px;
+        }
+        .dark .custom-scroll::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-5px); }
+        }
+        .animate-bounce {
+            animation: bounce 0.5s ease;
+        }
+        
+        .ronda-editable {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .ronda-editable:hover {
+            background-color: rgba(79, 70, 229, 0.1);
+            border-radius: 8px;
+            padding: 0 4px;
+        }
+
+        .risk-bar {
+            width: 100%;
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+        
+        .dark .risk-bar {
+            background: #1e293b;
+        }
+        
+        .risk-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+            border-radius: 2px;
+        }
+        
+        .points-remaining {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(4px);
+        }
+        
+        .risk-low {
+            color: #22c55e;
+        }
+        .risk-medium {
+            color: #eab308;
+        }
+        .risk-high {
+            color: #ef4444;
+        }
+        .risk-critical {
+            color: #dc2626;
+            font-weight: 800;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .risk-pulse {
+            animation: pulse 1s infinite;
+        }
+
+        .reengage-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            background: rgba(99, 102, 241, 0.1);
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-size: 9px;
+            font-weight: 600;
+            color: #6366f1;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+        
+        .dark .reengage-badge {
+            background: rgba(99, 102, 241, 0.2);
+            color: #818cf8;
+        }
+
+        /* Estilos para el historial */
+        .history-item {
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+        
+        .history-item:hover {
+            border-color: rgba(99, 102, 241, 0.3);
+            background: rgba(99, 102, 241, 0.05);
+        }
+        
+        .dark .history-item:hover {
+            background: rgba(99, 102, 241, 0.1);
+        }
+        
+        .history-expanded {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        
+        .history-expanded.show {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .finish-btn {
+            background: linear-gradient(145deg, #dc2626, #b91c1c);
+        }
+        .finish-btn:hover {
+            background: linear-gradient(145deg, #b91c1c, #991b1b);
+        }
+
+        /* Botón de eliminar historial */
+        .delete-history-btn {
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        
+        .history-item:hover .delete-history-btn {
+            opacity: 1;
+        }
+        
+        .delete-history-btn:hover {
+            color: #ef4444;
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-800 min-h-screen p-4 font-sans transition-colors duration-200 antialiased">
+
+    <!-- Indicador de guardado automático -->
+    <div id="autoSaveIndicator" class="auto-save-indicator">
+        <i class="fa-solid fa-cloud-arrow-up"></i>
+        <span id="autoSaveText">Guardado automático</span>
+    </div>
+
+    <div class="max-w-md mx-auto">
+        <div class="backdrop-blur-sm bg-white/90 dark:bg-slate-800/90 rounded-3xl shadow-2xl overflow-hidden p-6 border border-white/20 dark:border-slate-700/50 transition-all duration-300">
+            
+            <!-- Header -->
+            <div class="flex justify-between items-center mb-8">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-600/20">
+                        <i class="fa-solid fa-clover text-white text-xl"></i>
+                    </div>
+                    <h1 class="text-2xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent tracking-tight">
+                        CONGA PRO
+                    </h1>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <div class="text-right">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1">
+                            <i class="fa-regular fa-hourglass-half text-indigo-400"></i>
+                            Ronda
+                        </span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-3xl font-black text-indigo-600 dark:text-indigo-400 leading-none ronda-editable" 
+                                  id="roundDisplay" 
+                                  onclick="editRound()"
+                                  title="Haz clic para editar">1</span>
+                            <i class="fa-regular fa-pen-to-square text-xs text-slate-400 dark:text-slate-500 cursor-pointer" 
+                               onclick="editRound()"
+                               title="Editar ronda"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Límite de derrota -->
+            <div class="mb-6 bg-slate-50 dark:bg-slate-700/50 p-5 rounded-xl border border-slate-200 dark:border-slate-600 backdrop-blur-sm">
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
+                    <i class="fa-solid fa-shield-halved mr-1"></i>
+                    LÍMITE DE ELIMINACIÓN
+                </label>
+                <div class="relative">
+                    <input type="number" id="limitInput" value="100" min="1" step="1"
+                           class="w-full p-3 pl-12 rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-indigo-500 dark:focus:border-indigo-400 outline-none font-bold text-lg transition-all"
+                           onchange="saveToStorage(); render()">
+                    <i class="fa-solid fa-bolt absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 text-lg"></i>
+                </div>
+                <p class="text-xs text-slate-400 dark:text-slate-500 mt-2 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <span>Los jugadores que alcancen este puntaje quedan eliminados</span>
+                </p>
+            </div>
+
+            <!-- Agregar jugador -->
+            <div class="flex gap-2 mb-8">
+                <div class="flex-1 relative">
+                    <input type="text" id="playerName" placeholder="Nombre del jugador" 
+                           class="w-full p-3 pl-12 border-2 border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-800 focus:border-indigo-500 dark:focus:border-indigo-400 outline-none transition-all"
+                           onkeypress="if(event.key==='Enter') addPlayer()"
+                           maxlength="20">
+                    <i class="fa-regular fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 text-lg"></i>
+                </div>
+                <button onclick="addPlayer()" 
+                        class="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white px-6 py-3 rounded-xl font-bold hover:from-indigo-700 hover:to-indigo-800 active:scale-95 transition-all shadow-lg shadow-indigo-500/30 flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i>
+                    <span class="hidden sm:inline">Añadir</span>
+                </button>
+            </div>
+
+            <!-- Lista de jugadores -->
+            <div id="playersList" class="space-y-3 max-h-[400px] overflow-y-auto pr-1 custom-scroll"></div>
+
+            <!-- Botones de acción -->
+            <div class="mt-8 space-y-3">
+                <button id="btnNextRound" onclick="nextRound()" 
+                        class="hidden w-full bg-gradient-to-r from-slate-800 to-slate-900 dark:from-indigo-600 dark:to-indigo-700 text-white py-4 rounded-xl font-bold hover:from-black hover:to-slate-900 dark:hover:from-indigo-700 dark:hover:to-indigo-800 transition-all shadow-xl text-lg tracking-wide transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-forward-step"></i>
+                    AVANZAR RONDA
+                    <i class="fa-solid fa-forward-step"></i>
+                </button>
+                
+                <!-- Botón de finalizar partida -->
+                <button onclick="confirmFinishGame()" 
+                        class="w-full finish-btn text-white py-4 rounded-xl font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl text-lg tracking-wide flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-flag-checkered"></i>
+                    FINALIZAR PARTIDA
+                    <i class="fa-solid fa-flag-checkered"></i>
+                </button>
+                
+                <button onclick="resetGame()" 
+                        class="w-full text-slate-400 dark:text-slate-500 text-xs font-bold uppercase tracking-widest hover:text-red-500 dark:hover:text-red-400 transition py-3 flex items-center justify-center gap-2 group">
+                    <i class="fa-solid fa-rotate-right group-hover:rotate-180 transition-transform duration-500"></i>
+                    REINICIAR PARTIDA
+                </button>
+            </div>
+        </div>
+        
+        <!-- SECCIÓN DE HISTORIAL -->
+        <div class="mt-6 backdrop-blur-sm bg-white/90 dark:bg-slate-800/90 rounded-3xl shadow-xl overflow-hidden p-5 border border-white/20 dark:border-slate-700/50">
+            <div class="flex items-center gap-2 mb-4">
+                <i class="fa-solid fa-clock-rotate-left text-indigo-500"></i>
+                <h2 class="font-black text-sm uppercase tracking-wider text-slate-500 dark:text-slate-400">Historial de partidas</h2>
+                <span class="ml-auto text-xs bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-2 py-1 rounded-full" id="historyCount">0</span>
+            </div>
+            
+            <div id="historyList" class="space-y-2 max-h-[300px] overflow-y-auto pr-1 custom-scroll">
+                <!-- Las partidas se insertarán aquí dinámicamente -->
+                <div class="text-center py-8 text-slate-400 dark:text-slate-600">
+                    <i class="fa-regular fa-receipt text-3xl mb-2 opacity-30"></i>
+                    <p class="text-sm">No hay partidas finalizadas</p>
+                </div>
+            </div>
+            
+            <!-- Botón para limpiar todo el historial -->
+            <div class="mt-3 text-right">
+                <button onclick="clearAllHistory()" 
+                        class="text-xs text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 transition-colors px-3 py-1 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20">
+                    <i class="fa-regular fa-trash-can mr-1"></i>
+                    Limpiar historial
+                </button>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="mt-4 text-center text-xs text-slate-400 dark:text-slate-600 flex items-center justify-center gap-6">
+            <span class="flex items-center gap-1.5">
+                <span class="w-2 h-2 bg-green-500 rounded-full"></span> 
+                Líder
+            </span>
+            <span class="flex items-center gap-1.5">
+                <span class="w-2 h-2 bg-red-500 rounded-full"></span> 
+                Eliminado
+            </span>
+            <span class="flex items-center gap-1.5">
+                <i class="fa-regular fa-clock"></i>
+                <span id="utcTime">UTC</span>
+            </span>
+        </div>
+    </div>
+
+    <script>
+        let players = [];
+        let currentRound = 1;
+        let isDarkMode = false;
+        let saveTimeout;
+        let history = [];
+
+        // Actualizar reloj UTC
+        function updateUTCTime() {
+            const now = new Date();
+            const utcString = now.toISOString().substring(11, 19);
+            document.getElementById('utcTime').textContent = utcString + ' UTC';
+        }
+        setInterval(updateUTCTime, 1000);
+        updateUTCTime();
+
+        // Función para calcular el nivel de riesgo y color
+        function getRiskLevel(score, limit) {
+            if (score >= limit) return { level: 'eliminado', color: '#ef4444', textColor: 'text-red-500', icon: 'fa-solid fa-skull', remaining: 0 };
+            
+            const remaining = limit - score;
+            const percentage = (score / limit) * 100;
+            
+            if (percentage < 30) {
+                return { 
+                    level: 'bajo', 
+                    color: '#22c55e', 
+                    textColor: 'text-green-500', 
+                    icon: 'fa-regular fa-face-smile',
+                    remaining: remaining,
+                    barColor: 'bg-green-500'
+                };
+            } else if (percentage < 60) {
+                return { 
+                    level: 'medio', 
+                    color: '#eab308', 
+                    textColor: 'text-yellow-500', 
+                    icon: 'fa-regular fa-face-meh',
+                    remaining: remaining,
+                    barColor: 'bg-yellow-500'
+                };
+            } else if (percentage < 85) {
+                return { 
+                    level: 'alto', 
+                    color: '#f97316', 
+                    textColor: 'text-orange-500', 
+                    icon: 'fa-regular fa-face-frown',
+                    remaining: remaining,
+                    barColor: 'bg-orange-500'
+                };
+            } else {
+                return { 
+                    level: 'critico', 
+                    color: '#ef4444', 
+                    textColor: 'text-red-500 font-bold', 
+                    icon: 'fa-solid fa-circle-exclamation',
+                    remaining: remaining,
+                    barColor: 'bg-red-500',
+                    pulse: true
+                };
+            }
+        }
+
+        // Cargar datos guardados
+        function loadFromStorage() {
+            try {
+                const saved = localStorage.getItem('congaProData');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    players = data.players || [];
+                    currentRound = data.currentRound || 1;
+                    history = data.history || [];
+                    
+                    if (data.limit) {
+                        document.getElementById('limitInput').value = data.limit;
+                    }
+                    
+                    if (data.theme === 'dark') {
+                        document.documentElement.classList.add('dark');
+                        isDarkMode = true;
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                        isDarkMode = false;
+                    }
+                    
+                    showAutoSaveIndicator('Datos cargados');
+                }
+            } catch (e) {
+                console.error('Error cargando:', e);
+            }
+        }
+
+        // Guardar en localStorage
+        function saveToStorage() {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                try {
+                    const data = {
+                        players: players,
+                        currentRound: currentRound,
+                        limit: parseInt(document.getElementById('limitInput').value) || 100,
+                        theme: isDarkMode ? 'dark' : 'light',
+                        lastSaved: new Date().toISOString(),
+                        history: history
+                    };
+                    localStorage.setItem('congaProData', JSON.stringify(data));
+                    
+                    const now = new Date();
+                    const timeStr = now.toISOString().substring(11, 19);
+                    showAutoSaveIndicator(`Guardado ${timeStr} UTC`);
+                } catch (e) {
+                    console.error('Error guardando:', e);
+                }
+            }, 500);
+        }
+
+        // Mostrar indicador
+        function showAutoSaveIndicator(text) {
+            const indicator = document.getElementById('autoSaveIndicator');
+            const span = document.getElementById('autoSaveText');
+            span.textContent = text;
+            indicator.classList.add('show');
+            
+            clearTimeout(window.indicatorTimeout);
+            window.indicatorTimeout = setTimeout(() => {
+                indicator.classList.remove('show');
+            }, 2000);
+        }
+
+        // Función para editar la ronda actual
+        function editRound() {
+            const roundSpan = document.getElementById('roundDisplay');
+            const currentValue = currentRound;
+            
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.value = currentValue;
+            input.min = '1';
+            input.step = '1';
+            input.className = 'w-16 p-1 border-2 border-indigo-400 rounded-lg text-right font-bold outline-none bg-white dark:bg-slate-700 dark:text-white text-2xl';
+            input.style.fontSize = '1.875rem';
+            input.style.fontWeight = '900';
+            
+            roundSpan.parentNode.replaceChild(input, roundSpan);
+            input.focus();
+            
+            const saveEdit = () => {
+                const newRound = parseInt(input.value);
+                if (!isNaN(newRound) && newRound > 0) {
+                    currentRound = newRound;
+                }
+                
+                const newSpan = document.createElement('span');
+                newSpan.className = 'text-3xl font-black text-indigo-600 dark:text-indigo-400 leading-none ronda-editable';
+                newSpan.id = 'roundDisplay';
+                newSpan.onclick = editRound;
+                newSpan.title = 'Haz clic para editar';
+                newSpan.textContent = currentRound;
+                
+                input.parentNode.replaceChild(newSpan, input);
+                saveToStorage();
+            };
+            
+            input.onblur = saveEdit;
+            input.onkeypress = (e) => {
+                if (e.key === 'Enter') {
+                    saveEdit();
+                }
+            };
+        }
+
+        function addPlayer() {
+            const nameInput = document.getElementById('playerName');
+            const name = nameInput.value.trim();
+            if (name) {
+                players.push({ 
+                    id: Date.now(), 
+                    name: name.substring(0, 20), 
+                    score: 0, 
+                    reengages: 0,
+                    isEditing: false 
+                });
+                nameInput.value = '';
+                nameInput.focus();
+                render();
+                saveToStorage();
+                showAutoSaveIndicator(`${name} añadido`);
+            }
+        }
+
+        function toggleEdit(id) {
+            const player = players.find(p => p.id === id);
+            if (player) {
+                player.isEditing = !player.isEditing;
+                render();
+            }
+        }
+
+        function saveManualScore(id, val) {
+            const player = players.find(p => p.id === id);
+            if (player) {
+                const newScore = parseInt(val);
+                if (!isNaN(newScore) && newScore >= 0) {
+                    player.score = newScore;
+                    saveToStorage();
+                }
+                player.isEditing = false;
+                render();
+            }
+        }
+
+        function reengage(id) {
+            const limit = parseInt(document.getElementById('limitInput').value) || 100;
+            const activePlayers = players.filter(p => p.score < limit);
+            
+            const maxActiveScore = activePlayers.length > 0 
+                ? Math.max(...activePlayers.map(p => p.score)) 
+                : 0;
+            
+            const player = players.find(p => p.id === id);
+            if (player) {
+                player.score = maxActiveScore;
+                player.reengages = (player.reengages || 0) + 1;
+                saveToStorage();
+                render();
+                showAutoSaveIndicator(`${player.name} reenganchado (${player.reengages} ${player.reengages === 1 ? 'vez' : 'veces'})`);
+            }
+        }
+
+        // Función para eliminar una partida del historial
+        function deleteHistoryItem(id) {
+            if (confirm('¿Eliminar esta partida del historial?')) {
+                history = history.filter(game => game.id !== id);
+                renderHistory();
+                saveToStorage();
+                showAutoSaveIndicator('Partida eliminada del historial');
+            }
+        }
+
+        // Función para limpiar todo el historial
+        function clearAllHistory() {
+            if (history.length === 0) {
+                showAutoSaveIndicator('No hay historial para limpiar');
+                return;
+            }
+            
+            if (confirm('¿Eliminar TODAS las partidas del historial?')) {
+                history = [];
+                renderHistory();
+                saveToStorage();
+                showAutoSaveIndicator('Historial limpiado');
+            }
+        }
+
+        // Función para finalizar partida
+        function finishGame() {
+            if (players.length === 0) {
+                showAutoSaveIndicator('No hay jugadores para finalizar');
+                return;
+            }
+
+            const sortedByScore = [...players].sort((a, b) => a.score - b.score);
+            const winner = sortedByScore[0];
+            
+            const gameRecord = {
+                id: Date.now(),
+                date: new Date().toISOString(),
+                winner: {
+                    name: winner.name,
+                    score: winner.score,
+                    reengages: winner.reengages || 0
+                },
+                players: players.map(p => ({
+                    name: p.name,
+                    score: p.score,
+                    reengages: p.reengages || 0
+                })),
+                limit: parseInt(document.getElementById('limitInput').value) || 100,
+                rounds: currentRound
+            };
+            
+            history.unshift(gameRecord);
+            
+            if (history.length > 20) {
+                history = history.slice(0, 20);
+            }
+            
+            players = [];
+            currentRound = 1;
+            
+            render();
+            renderHistory();
+            saveToStorage();
+            
+            showAutoSaveIndicator(`?? Partida finalizada - Ganador: ${winner.name}`);
+        }
+
+        // Confirmar finalización
+        function confirmFinishGame() {
+            if (players.length === 0) {
+                showAutoSaveIndicator('No hay jugadores para finalizar');
+                return;
+            }
+            
+            if (confirm('¿Finalizar la partida actual? Se guardará en el historial y se iniciará una nueva.')) {
+                finishGame();
+            }
+        }
+
+        // Renderizar historial
+        function renderHistory() {
+            const historyList = document.getElementById('historyList');
+            const historyCount = document.getElementById('historyCount');
+            
+            historyCount.textContent = history.length;
+            
+            if (history.length === 0) {
+                historyList.innerHTML = `
+                    <div class="text-center py-8 text-slate-400 dark:text-slate-600">
+                        <i class="fa-regular fa-receipt text-3xl mb-2 opacity-30"></i>
+                        <p class="text-sm">No hay partidas finalizadas</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            historyList.innerHTML = history.map(game => {
+                const date = new Date(game.date);
+                const formattedDate = date.toLocaleDateString('es-ES', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                const sortedPlayers = [...game.players].sort((a, b) => a.score - b.score);
+                
+                return `
+                    <div class="history-item bg-slate-50 dark:bg-slate-700/30 rounded-xl p-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2 flex-1 cursor-pointer" onclick="toggleHistory(${game.id})">
+                                <i class="fa-solid fa-trophy text-yellow-500"></i>
+                                <span class="font-bold text-sm text-slate-700 dark:text-slate-300">${game.winner.name}</span>
+                                <span class="text-xs bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 px-2 py-0.5 rounded-full">
+                                    ${game.winner.score} pts
+                                </span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-slate-400 dark:text-slate-500">
+                                    <i class="fa-regular fa-calendar mr-1"></i>
+                                    ${formattedDate}
+                                </span>
+                                <!-- Botón para eliminar esta partida -->
+                                <button onclick="deleteHistoryItem(${game.id})" 
+                                        class="delete-history-btn text-slate-400 hover:text-red-500 transition-all p-1"
+                                        title="Eliminar del historial">
+                                    <i class="fa-regular fa-trash-can"></i>
+                                </button>
+                                <i class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform" id="chevron-${game.id}" style="cursor: pointer;" onclick="toggleHistory(${game.id})"></i>
+                            </div>
+                        </div>
+                        
+                        <!-- Detalles expandibles -->
+                        <div id="history-${game.id}" class="history-expanded mt-2">
+                            <div class="pt-3 border-t border-slate-200 dark:border-slate-600 space-y-2">
+                                ${sortedPlayers.map(p => `
+                                    <div class="flex items-center justify-between text-xs">
+                                        <div class="flex items-center gap-2">
+                                            ${p.name === game.winner.name ? '<i class="fa-solid fa-crown text-yellow-500"></i>' : '<i class="fa-regular fa-circle text-slate-400"></i>'}
+                                            <span class="${p.name === game.winner.name ? 'font-bold text-yellow-600 dark:text-yellow-400' : 'text-slate-600 dark:text-slate-400'}">${p.name}</span>
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                            <span class="font-mono font-bold ${p.name === game.winner.name ? 'text-yellow-600' : 'text-slate-500'}">${p.score} pts</span>
+                                            ${p.reengages > 0 ? `
+                                                <span class="text-[10px] bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-full">
+                                                    <i class="fa-solid fa-rotate-left mr-1"></i>${p.reengages}
+                                                </span>
+                                            ` : ''}
+                                        </div>
+                                    </div>
+                                `).join('')}
+                                <div class="flex justify-between text-[10px] text-slate-400 dark:text-slate-500 pt-2 mt-1 border-t border-slate-100 dark:border-slate-700">
+                                    <span><i class="fa-regular fa-hourglass-half mr-1"></i>${game.rounds} rondas</span>
+                                    <span><i class="fa-solid fa-bolt mr-1"></i>Límite: ${game.limit}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Toggle historial
+        function toggleHistory(id) {
+            const element = document.getElementById(`history-${id}`);
+            const chevron = document.getElementById(`chevron-${id}`);
+            
+            element.classList.toggle('show');
+            
+            if (element.classList.contains('show')) {
+                chevron.style.transform = 'rotate(180deg)';
+            } else {
+                chevron.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        function render() {
+            const list = document.getElementById('playersList');
+            const limit = parseInt(document.getElementById('limitInput').value) || 100;
+            const btnRound = document.getElementById('btnNextRound');
+            
+            document.getElementById('roundDisplay').textContent = currentRound;
+            
+            btnRound.classList.toggle('hidden', players.length === 0);
+
+            const activePlayers = players.filter(p => p.score < limit);
+            const minScore = activePlayers.length > 0 ? Math.min(...activePlayers.map(p => p.score)) : null;
+
+            const sortedPlayers = [...players].sort((a, b) => {
+                const aElim = a.score >= limit;
+                const bElim = b.score >= limit;
+                if (aElim && !bElim) return 1;
+                if (!aElim && bElim) return -1;
+                return a.score - b.score;
+            });
+
+            list.innerHTML = '';
+            
+            if (players.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center py-12 px-4 bg-slate-50 dark:bg-slate-700/30 rounded-xl">
+                        <i class="fa-regular fa-club text-6xl mb-4 opacity-30"></i>
+                        <p class="text-slate-400 dark:text-slate-500 font-medium">No hay jugadores</p>
+                        <p class="text-xs text-slate-300 dark:text-slate-600 mt-1">Añade jugadores para comenzar</p>
+                    </div>
+                `;
+                return;
+            }
+
+            sortedPlayers.forEach(player => {
+                const isEliminated = player.score >= limit;
+                const isLeader = player.score === minScore && !isEliminated;
+                const maxActiveScore = activePlayers.length > 0 ? Math.max(...activePlayers.map(p => p.score)) : 0;
+                
+                const risk = getRiskLevel(player.score, limit);
+                const percentage = Math.min((player.score / limit) * 100, 100);
+                
+                player.reengages = player.reengages || 0;
+
+                const div = document.createElement('div');
+                div.className = `p-4 rounded-xl border transition-all fade-slide ${isEliminated ? 'eliminated-card' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:shadow-md'} ${isLeader ? 'leader-card' : ''}`;
+                
+                div.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="font-bold text-slate-800 dark:text-white truncate">${player.name}</span>
+                                <div class="flex gap-1 shrink-0">
+                                    ${isLeader ? '<span class="text-[10px] bg-green-500 text-white px-2 py-0.5 rounded-full uppercase font-bold tracking-wider flex items-center gap-1"><i class="fa-solid fa-crown text-[8px]"></i>LÍDER</span>' : ''}
+                                </div>
+                            </div>
+                            
+                            ${player.reengages > 0 ? `
+                                <div class="reengage-badge mt-1" title="Veces que se ha reenganchado">
+                                    <i class="fa-solid fa-rotate-left"></i>
+                                    <span>${player.reengages} ${player.reengages === 1 ? 'vez' : 'veces'}</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                        
+                        <div class="flex items-center gap-2 ml-2">
+                            ${player.isEditing ? 
+                                `<input type="number" value="${player.score}" 
+                                        onblur="saveManualScore(${player.id}, this.value)" 
+                                        onkeypress="if(event.key==='Enter') this.blur()"
+                                        autofocus 
+                                        class="w-20 p-2 border-2 border-indigo-400 rounded-lg text-right font-bold outline-none bg-white dark:bg-slate-700 dark:text-white">` :
+                                `<div class="flex items-center gap-2">
+                                    ${!isEliminated ? `
+                                        <div class="points-remaining ${risk.textColor} ${risk.pulse ? 'risk-pulse' : ''}" title="Puntos restantes para eliminar">
+                                            <i class="${risk.icon}"></i>
+                                            <span>${risk.remaining}</span>
+                                        </div>
+                                    ` : ''}
+                                    <span class="text-2xl font-black ${isEliminated ? 'text-red-400 dark:text-red-400' : 'text-slate-700 dark:text-white'}" 
+                                          onclick="toggleEdit(${player.id})">${player.score}</span>
+                                    <button onclick="toggleEdit(${player.id})" 
+                                            class="text-slate-300 hover:text-indigo-500 dark:text-slate-500 dark:hover:text-indigo-400 transition-colors p-1">
+                                        <i class="fa-regular fa-pen-to-square"></i>
+                                    </button>
+                                </div>`
+                            }
+                        </div>
+                    </div>
+
+                    ${!isEliminated ? `
+                        <div class="risk-bar mb-3">
+                            <div class="risk-fill ${risk.barColor}" style="width: ${percentage}%"></div>
+                        </div>
+                        
+                        <div class="flex justify-between text-[10px] text-slate-400 dark:text-slate-500 mb-3">
+                            <span class="flex items-center gap-1">
+                                <i class="fa-regular fa-flag"></i>
+                                <span></span>
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <i class="${risk.icon} ${risk.textColor}"></i>
+                                <span class="${risk.textColor}">${Math.round(percentage)}%</span>
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <i class="fa-solid fa-bolt"></i>
+                                <span>${limit}</span>
+                            </span>
+                        </div>
+                    ` : ''}
+
+                    <div class="flex gap-2 items-center">
+                        ${!isEliminated ? `
+                            <div class="relative flex-1">
+                                <input type="number" data-id="${player.id}" placeholder="Puntos..." 
+                                       class="score-input w-full p-3 pr-12 text-sm bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl outline-none focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-800 transition-all"
+                                       onkeypress="if(event.key==='Enter') nextRound()">
+                                <i class="fa-solid fa-plus absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 text-sm"></i>
+                            </div>
+                        ` : `
+                            <button onclick="reengage(${player.id})" 
+                                    class="w-full py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white text-sm font-black rounded-xl hover:from-indigo-700 hover:to-indigo-800 transition-all uppercase tracking-wider shadow-lg flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-rotate-left"></i>
+                                REENGANCHAR (${maxActiveScore})
+                            </button>
+                        `}
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function nextRound() {
+            const inputs = document.querySelectorAll('.score-input');
+            let somePointsAdded = false;
+            let totalAdded = 0;
+
+            inputs.forEach(input => {
+                const val = input.value.trim();
+                if (val !== "") {
+                    const points = parseInt(val);
+                    if (!isNaN(points) && points > 0) {
+                        const id = parseInt(input.dataset.id);
+                        const player = players.find(p => p.id === id);
+                        if (player) {
+                            player.score += points;
+                            totalAdded += points;
+                            somePointsAdded = true;
+                        }
+                    }
+                    input.value = "";
+                }
+            });
+
+            if (somePointsAdded) {
+                currentRound++;
+                render();
+                saveToStorage();
+                showAutoSaveIndicator(`Ronda ${currentRound-1}: +${totalAdded} pts`);
+            }
+        }
+
+        function resetGame() {
+            if (confirm('¿Reiniciar la partida actual? Se perderán todos los jugadores y puntajes.')) {
+                players = [];
+                currentRound = 1;
+                document.getElementById('limitInput').value = 100;
+                render();
+                saveToStorage();
+                showAutoSaveIndicator('Partida reiniciada');
+            }
+        }
+
+        // Inicialización
+        loadFromStorage();
+        render();
+        renderHistory();
+        
+        // Guardado periódico
+        setInterval(() => {
+            if (players.length > 0) saveToStorage();
+        }, 30000);
+
+        window.addEventListener('beforeunload', () => saveToStorage());
+    </script>
+</body>
+</html>
