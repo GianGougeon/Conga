@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTC-8">
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Anotador profesional para Conga - Lleva el puntaje de tus partidas">
     <meta name="theme-color" content="#4f46e5">
@@ -10,7 +11,7 @@
     <meta name="format-detection" content="telephone=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Conga Pro · Anotador</title>
+    <title>Conga Pro ï¿½ Anotador</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
@@ -212,7 +213,7 @@
             background: linear-gradient(145deg, #b91c1c, #991b1b);
         }
 
-        /* Botón de eliminar historial */
+        /* Botï¿½n de eliminar historial */
         .delete-history-btn {
             opacity: 0;
             transition: opacity 0.2s ease;
@@ -230,10 +231,10 @@
 </head>
 <body class="bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-800 min-h-screen p-4 font-sans transition-colors duration-200 antialiased">
 
-    <!-- Indicador de guardado automático -->
+    <!-- Indicador de guardado automï¿½tico -->
     <div id="autoSaveIndicator" class="auto-save-indicator">
         <i class="fa-solid fa-cloud-arrow-up"></i>
-        <span id="autoSaveText">Guardado automático</span>
+        <span id="autoSaveText">Guardado automï¿½tico</span>
     </div>
 
     <div class="max-w-md mx-auto">
@@ -269,11 +270,11 @@
                 </div>
             </div>
 
-            <!-- Límite de derrota -->
+            <!-- Lï¿½mite de derrota -->
             <div class="mb-6 bg-slate-50 dark:bg-slate-700/50 p-5 rounded-xl border border-slate-200 dark:border-slate-600 backdrop-blur-sm">
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
                     <i class="fa-solid fa-shield-halved mr-1"></i>
-                    LÍMITE DE ELIMINACIÓN
+                    Lï¿½MITE DE ELIMINACIï¿½N
                 </label>
                 <div class="relative">
                     <input type="number" id="limitInput" value="100" min="1" step="1"
@@ -299,14 +300,14 @@
                 <button onclick="addPlayer()" 
                         class="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white px-6 py-3 rounded-xl font-bold hover:from-indigo-700 hover:to-indigo-800 active:scale-95 transition-all shadow-lg shadow-indigo-500/30 flex items-center gap-2">
                     <i class="fa-solid fa-plus"></i>
-                    <span class="hidden sm:inline">Añadir</span>
+                    <span class="hidden sm:inline">Aï¿½adir</span>
                 </button>
             </div>
 
             <!-- Lista de jugadores -->
             <div id="playersList" class="space-y-3 max-h-[400px] overflow-y-auto pr-1 custom-scroll"></div>
 
-            <!-- Botones de acción -->
+            <!-- Botones de acciï¿½n -->
             <div class="mt-8 space-y-3">
                 <button id="btnNextRound" onclick="nextRound()" 
                         class="hidden w-full bg-gradient-to-r from-slate-800 to-slate-900 dark:from-indigo-600 dark:to-indigo-700 text-white py-4 rounded-xl font-bold hover:from-black hover:to-slate-900 dark:hover:from-indigo-700 dark:hover:to-indigo-800 transition-all shadow-xl text-lg tracking-wide transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3">
@@ -315,7 +316,7 @@
                     <i class="fa-solid fa-forward-step"></i>
                 </button>
                 
-                <!-- Botón de finalizar partida -->
+                <!-- Botï¿½n de finalizar partida -->
                 <button onclick="confirmFinishGame()" 
                         class="w-full finish-btn text-white py-4 rounded-xl font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl text-lg tracking-wide flex items-center justify-center gap-3">
                     <i class="fa-solid fa-flag-checkered"></i>
@@ -331,7 +332,7 @@
             </div>
         </div>
         
-        <!-- SECCIÓN DE HISTORIAL -->
+        <!-- SECCIï¿½N DE HISTORIAL -->
         <div class="mt-6 backdrop-blur-sm bg-white/90 dark:bg-slate-800/90 rounded-3xl shadow-xl overflow-hidden p-5 border border-white/20 dark:border-slate-700/50">
             <div class="flex items-center gap-2 mb-4">
                 <i class="fa-solid fa-clock-rotate-left text-indigo-500"></i>
@@ -340,14 +341,14 @@
             </div>
             
             <div id="historyList" class="space-y-2 max-h-[300px] overflow-y-auto pr-1 custom-scroll">
-                <!-- Las partidas se insertarán aquí dinámicamente -->
+                <!-- Las partidas se insertarï¿½n aquï¿½ dinï¿½micamente -->
                 <div class="text-center py-8 text-slate-400 dark:text-slate-600">
                     <i class="fa-regular fa-receipt text-3xl mb-2 opacity-30"></i>
                     <p class="text-sm">No hay partidas finalizadas</p>
                 </div>
             </div>
             
-            <!-- Botón para limpiar todo el historial -->
+            <!-- Botï¿½n para limpiar todo el historial -->
             <div class="mt-3 text-right">
                 <button onclick="clearAllHistory()" 
                         class="text-xs text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 transition-colors px-3 py-1 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20">
@@ -361,7 +362,7 @@
         <div class="mt-4 text-center text-xs text-slate-400 dark:text-slate-600 flex items-center justify-center gap-6">
             <span class="flex items-center gap-1.5">
                 <span class="w-2 h-2 bg-green-500 rounded-full"></span> 
-                Líder
+                Lï¿½der
             </span>
             <span class="flex items-center gap-1.5">
                 <span class="w-2 h-2 bg-red-500 rounded-full"></span> 
@@ -390,7 +391,7 @@
         setInterval(updateUTCTime, 1000);
         updateUTCTime();
 
-        // Función para calcular el nivel de riesgo y color
+        // Funciï¿½n para calcular el nivel de riesgo y color
         function getRiskLevel(score, limit) {
             if (score >= limit) return { level: 'eliminado', color: '#ef4444', textColor: 'text-red-500', icon: 'fa-solid fa-skull', remaining: 0 };
             
@@ -503,7 +504,7 @@
             }, 2000);
         }
 
-        // Función para editar la ronda actual
+        // Funciï¿½n para editar la ronda actual
         function editRound() {
             const roundSpan = document.getElementById('roundDisplay');
             const currentValue = currentRound;
@@ -560,7 +561,7 @@
                 nameInput.focus();
                 render();
                 saveToStorage();
-                showAutoSaveIndicator(`${name} añadido`);
+                showAutoSaveIndicator(`${name} aï¿½adido`);
             }
         }
 
@@ -603,9 +604,9 @@
             }
         }
 
-        // Función para eliminar una partida del historial
+        // Funciï¿½n para eliminar una partida del historial
         function deleteHistoryItem(id) {
-            if (confirm('¿Eliminar esta partida del historial?')) {
+            if (confirm('ï¿½Eliminar esta partida del historial?')) {
                 history = history.filter(game => game.id !== id);
                 renderHistory();
                 saveToStorage();
@@ -613,14 +614,14 @@
             }
         }
 
-        // Función para limpiar todo el historial
+        // Funciï¿½n para limpiar todo el historial
         function clearAllHistory() {
             if (history.length === 0) {
                 showAutoSaveIndicator('No hay historial para limpiar');
                 return;
             }
             
-            if (confirm('¿Eliminar TODAS las partidas del historial?')) {
+            if (confirm('ï¿½Eliminar TODAS las partidas del historial?')) {
                 history = [];
                 renderHistory();
                 saveToStorage();
@@ -628,7 +629,7 @@
             }
         }
 
-        // Función para finalizar partida
+        // Funciï¿½n para finalizar partida
         function finishGame() {
             if (players.length === 0) {
                 showAutoSaveIndicator('No hay jugadores para finalizar');
@@ -671,14 +672,14 @@
             showAutoSaveIndicator(`?? Partida finalizada - Ganador: ${winner.name}`);
         }
 
-        // Confirmar finalización
+        // Confirmar finalizaciï¿½n
         function confirmFinishGame() {
             if (players.length === 0) {
                 showAutoSaveIndicator('No hay jugadores para finalizar');
                 return;
             }
             
-            if (confirm('¿Finalizar la partida actual? Se guardará en el historial y se iniciará una nueva.')) {
+            if (confirm('ï¿½Finalizar la partida actual? Se guardarï¿½ en el historial y se iniciarï¿½ una nueva.')) {
                 finishGame();
             }
         }
@@ -727,7 +728,7 @@
                                     <i class="fa-regular fa-calendar mr-1"></i>
                                     ${formattedDate}
                                 </span>
-                                <!-- Botón para eliminar esta partida -->
+                                <!-- Botï¿½n para eliminar esta partida -->
                                 <button onclick="deleteHistoryItem(${game.id})" 
                                         class="delete-history-btn text-slate-400 hover:text-red-500 transition-all p-1"
                                         title="Eliminar del historial">
@@ -758,7 +759,7 @@
                                 `).join('')}
                                 <div class="flex justify-between text-[10px] text-slate-400 dark:text-slate-500 pt-2 mt-1 border-t border-slate-100 dark:border-slate-700">
                                     <span><i class="fa-regular fa-hourglass-half mr-1"></i>${game.rounds} rondas</span>
-                                    <span><i class="fa-solid fa-bolt mr-1"></i>Límite: ${game.limit}</span>
+                                    <span><i class="fa-solid fa-bolt mr-1"></i>Lï¿½mite: ${game.limit}</span>
                                 </div>
                             </div>
                         </div>
@@ -808,7 +809,7 @@
                     <div class="text-center py-12 px-4 bg-slate-50 dark:bg-slate-700/30 rounded-xl">
                         <i class="fa-regular fa-club text-6xl mb-4 opacity-30"></i>
                         <p class="text-slate-400 dark:text-slate-500 font-medium">No hay jugadores</p>
-                        <p class="text-xs text-slate-300 dark:text-slate-600 mt-1">Añade jugadores para comenzar</p>
+                        <p class="text-xs text-slate-300 dark:text-slate-600 mt-1">Aï¿½ade jugadores para comenzar</p>
                     </div>
                 `;
                 return;
@@ -833,7 +834,7 @@
                             <div class="flex items-center gap-2 flex-wrap">
                                 <span class="font-bold text-slate-800 dark:text-white truncate">${player.name}</span>
                                 <div class="flex gap-1 shrink-0">
-                                    ${isLeader ? '<span class="text-[10px] bg-green-500 text-white px-2 py-0.5 rounded-full uppercase font-bold tracking-wider flex items-center gap-1"><i class="fa-solid fa-crown text-[8px]"></i>LÍDER</span>' : ''}
+                                    ${isLeader ? '<span class="text-[10px] bg-green-500 text-white px-2 py-0.5 rounded-full uppercase font-bold tracking-wider flex items-center gap-1"><i class="fa-solid fa-crown text-[8px]"></i>Lï¿½DER</span>' : ''}
                                 </div>
                             </div>
                             
@@ -943,7 +944,7 @@
         }
 
         function resetGame() {
-            if (confirm('¿Reiniciar la partida actual? Se perderán todos los jugadores y puntajes.')) {
+            if (confirm('ï¿½Reiniciar la partida actual? Se perderï¿½n todos los jugadores y puntajes.')) {
                 players = [];
                 currentRound = 1;
                 document.getElementById('limitInput').value = 100;
@@ -953,12 +954,12 @@
             }
         }
 
-        // Inicialización
+        // Inicializaciï¿½n
         loadFromStorage();
         render();
         renderHistory();
         
-        // Guardado periódico
+        // Guardado periï¿½dico
         setInterval(() => {
             if (players.length > 0) saveToStorage();
         }, 30000);
